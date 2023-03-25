@@ -1,4 +1,4 @@
-# CoMVMYCebu.github.io
+# The Association of The Children of Mary Immaculate
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
