@@ -1,0 +1,67 @@
+# CoMVMYCebu.github.io
+const express = require('express');
+const session = require('express-session');
+const passport = require('passport');
+const GitHubStrategy = require('passport-github2').Strategy;
+
+const app = express();
+
+// Configure session middleware
+app.use(session({
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: false,
+}));
+
+// Configure passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Configure GitHub authentication strategy
+passport.use(new GitHubStrategy({
+  clientID: 'your_client_id',
+  clientSecret: 'your_client_secret',
+  callbackURL: 'http://localhost:3000/auth/github/callback',
+}, (accessToken, refreshToken, profile, done) => {
+  // Here you can use the user profile data to create a new user in your database or fetch an existing user
+  // and store the user ID in the session to keep the user logged in
+  const userId = profile.id;
+  done(null, userId);
+}));
+
+// Serialize and deserialize user for session management
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
+// Create a login route
+app.get('/login/github', passport.authenticate('github'));
+
+// Create a callback route to handle authentication results
+app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
+  res.redirect('/');
+});
+
+// Create a logout route
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
+// Create a protected route that requires authentication
+app.get('/', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.send(`Hello, ${req.user}! You are logged in.`);
+  } else {
+    res.send('You are not logged in.');
+  }
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server started on port 3000');
+});
